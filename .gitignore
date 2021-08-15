@@ -5,7 +5,4 @@ __internal/
 lib/
 target/
 *.o
-
-
-
-
+*.class
