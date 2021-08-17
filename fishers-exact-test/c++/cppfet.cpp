@@ -5,18 +5,22 @@
 #include <numeric>
 #include <stdlib.h>
 
-std::vector<double> logFactorial(const long n) {
-    std::vector<double> fs(n + 1);
+constexpr std::array<long, 4> DATA = { 1982, 3018, 2056, 2944 };
+constexpr long GRAND_TOTAL = DATA[0] + DATA[1] + DATA[2] + DATA[3];
+constexpr long FACTORIAL_SIZE = GRAND_TOTAL + 1;
+
+std::array<double, FACTORIAL_SIZE> logFactorial() {
+    std::array<double, FACTORIAL_SIZE> fs;
 	
 	fs[0] = 0;
-	for(long i = 1; i < n+1; i++) {
+	for(long i = 1; i < FACTORIAL_SIZE; i++) {
 		fs[i] = fs[i-1] + log(i);
 	}
     
     return fs;
 }
 
-double logHypergeometricProbability(const std::array<long, 4>& data, const std::vector<double>& fs) {
+double logHypergeometricProbability(const std::array<long, 4>& data, const std::array<double, FACTORIAL_SIZE>& fs) {
 	return (
 		fs[data[0] + data[1]] +
 		fs[data[2] + data[3]] +
@@ -30,18 +34,12 @@ double logHypergeometricProbability(const std::array<long, 4>& data, const std::
 	);
 }
 
-double fisher_exact(const std::array<long, 4>& data) {
-    // sum all table values
-	const long grandTotal = data[0] + data[1] + data[2] + data[3];
-	
-    // save factorial values for repeated use in the loop below
-    const std::vector<double> factorials = logFactorial(grandTotal);
-    
+double fisher_exact(const std::array<long, 4>& data, std::array<double, FACTORIAL_SIZE>& factorials) {
     // calculate our rejection threshold
 	const double pvalThreshold = logHypergeometricProbability(data, factorials);
 	
     double pvalFraction = 0;
-	for(long i = 0; i <= grandTotal; i++) {
+	for(long i = 0; i <= GRAND_TOTAL; i++) {
 		if((data[0] + data[1] - i >= 0) && (data[0] + data[2] - i >= 0) && (data[3] - data[0] + i >=0)) {
             double lhgp = logHypergeometricProbability({
                 i,
@@ -66,15 +64,10 @@ int main(int argc, char* argv[]) {
         return 0;
     }
     
-    // our contingency table
-	const std::array<long, 4> data = {
-        1982, 3018,
-        2056, 2944
-    };
-    
     double pvalue = 0.0;
+    std::array<double, FACTORIAL_SIZE> factorials = logFactorial();
 	for(size_t i = 0; i < atoi(argv[1]); i++) {
-		pvalue = fisher_exact(data);
+		pvalue = fisher_exact(DATA, factorials);
 	}
     
     std::cout << "pvalue = " << pvalue << "\n";
