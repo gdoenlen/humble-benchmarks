@@ -39,7 +39,7 @@ public class Fet {
             }
         }
 
-        return Math.exp(PVAL_THRESHOLD + Math.log(pvalFraction));
+        return Math.exp(PVAL_THRESHOLD) * pvalFraction;
     }
 
     static double[] logFactorial(int n) {
